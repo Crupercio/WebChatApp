@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalR Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+
+</head>
+<body>
+    <h1>Chat Application</h1>
+    <input type="text" id="userInput" value="@User.Identity?.Name" readonly />
+
+    <input type="text" id="messageInput" placeholder="Enter your message" />
+    <button onclick="sendMessage()">Send</button>
+    <ul id="messagesList"></ul>
+    
+    
+
+   <script>
+    const connection = new signalR.HubConnectionBuilder().withUrl("/Chat").build();
+
+    // Update to correctly handle user and message
+    connection.on("ReceiveMessage", (user, message, timestamp) => {
+    const li = document.createElement("li");
+    const time = new Date(timestamp).toLocaleTimeString(); // Convert timestamp to local time
+    li.textContent = `[${time}] ${user}: ${message}`; // Include timestamp, user, and message
+    document.getElementById("messagesList").appendChild(li);
+    });
+
+
+    connection.start()
+        .then(() => console.log("SignalR connected"))
+        .catch(err => console.error("Error connecting to SignalR:", err));
+
+    function sendMessage() {
+        const userInput = document.getElementById("userInput");
+        const user = userInput.value;
+
+        const messageInput = document.getElementById("messageInput");
+        const message = messageInput.value;
+        messageInput.value = "";
+
+        // Send the message to the server
+        connection.invoke("SendMessage", message)
+            .catch(err => console.error("Error sending message:", err));
+    }
+</script>
+
+    
+  
+    
+</body>
+</html>
